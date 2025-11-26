@@ -70,41 +70,41 @@ class DataProxy:
     def __gt__(self, other: Union["DataProxy", int, float]) -> "DataProxy":
         """Greater than comparison"""
         if isinstance(other, DataProxy):
-            s: pl.Series = self.df["data"] > other.df["data"]
+            s: pl.Series = (self.df["data"] > other.df["data"]).cast(pl.Int8, strict=False)
         else:
-            s = self.df["data"] > other
+            s = (self.df["data"] > other).cast(pl.Int8, strict=False)
         return self.result(s)
 
     def __ge__(self, other: Union["DataProxy", int, float]) -> "DataProxy":
         """Greater than or equal comparison"""
         if isinstance(other, DataProxy):
-            s: pl.Series = self.df["data"] >= other.df["data"]
+            s: pl.Series = (self.df["data"] >= other.df["data"]).cast(pl.Int8, strict=False)
         else:
-            s = self.df["data"] >= other
+            s = (self.df["data"] >= other).cast(pl.Int8, strict=False)
         return self.result(s)
 
     def __lt__(self, other: Union["DataProxy", int, float]) -> "DataProxy":
         """Less than comparison"""
         if isinstance(other, DataProxy):
-            s: pl.Series = self.df["data"] < other.df["data"]
+            s: pl.Series = (self.df["data"] < other.df["data"]).cast(pl.Int8, strict=False)
         else:
-            s = self.df["data"] < other
+            s = (self.df["data"] < other).cast(pl.Int8, strict=False)
         return self.result(s)
 
     def __le__(self, other: Union["DataProxy", int, float]) -> "DataProxy":
         """Less than or equal comparison"""
         if isinstance(other, DataProxy):
-            s: pl.Series = self.df["data"] <= other.df["data"]
+            s: pl.Series = (self.df["data"] <= other.df["data"]).cast(pl.Int8, strict=False)
         else:
-            s = self.df["data"] <= other
+            s = (self.df["data"] <= other).cast(pl.Int8, strict=False)
         return self.result(s)
 
     def __eq__(self, other: Union["DataProxy", int, float]) -> "DataProxy":    # type: ignore
         """Equal comparison"""
         if isinstance(other, DataProxy):
-            s = self.df["data"] == other.df["data"]
+            s = (self.df["data"] == other.df["data"]).cast(pl.Int8, strict=False)
         else:
-            s = self.df["data"] == other
+            s = (self.df["data"] == other).cast(pl.Int8, strict=False)
         return self.result(s)
 
 

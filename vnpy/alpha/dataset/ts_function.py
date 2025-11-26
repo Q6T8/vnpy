@@ -26,7 +26,7 @@ def ts_min(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_min(window, min_samples=1).over("vt_symbol")
+        pl.col("data").rolling_min(window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -36,7 +36,7 @@ def ts_max(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_max(window, min_samples=1).over("vt_symbol")
+        pl.col("data").rolling_max(window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -46,7 +46,7 @@ def ts_argmax(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: cast(int, s.arg_max()) + 1, window).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: cast(int, s.arg_max()) + 1, window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -56,7 +56,7 @@ def ts_argmin(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: cast(int, s.arg_min()) + 1, window).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: cast(int, s.arg_min()) + 1, window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -66,7 +66,7 @@ def ts_rank(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: stats.percentileofscore(s, s[-1]) / 100, window).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: stats.percentileofscore(s, s[-1]) / 100, window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -76,7 +76,7 @@ def ts_sum(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_sum(window).over("vt_symbol")
+        pl.col("data").rolling_sum(window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -86,7 +86,7 @@ def ts_mean(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: np.nanmean(s), window, min_samples=1).over("vt_symbol")
+        pl.col("data").cast(pl.Float64).rolling_map(lambda s: float(np.nanmean(s)), window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -96,7 +96,7 @@ def ts_std(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: np.nanstd(s, ddof=0), window, min_samples=1).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: np.nanstd(s, ddof=0), window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -106,7 +106,7 @@ def ts_slope(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: np.polyfit(np.arange(len(s)), s, 1)[0], window).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: np.polyfit(np.arange(len(s)), s, 1)[0], window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -116,7 +116,7 @@ def ts_quantile(feature: DataProxy, window: int, quantile: float) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: s.quantile(quantile=quantile, interpolation="linear"), window).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: s.quantile(quantile=quantile, interpolation="linear"), window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -133,7 +133,7 @@ def ts_rsquare(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: rsquare(s), window).over("vt_symbol"))
+        pl.col("data").rolling_map(lambda s: rsquare(s), window, min_samples=window).over("vt_symbol"))
     return DataProxy(df)
 
 
@@ -151,7 +151,7 @@ def ts_resi(feature: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = feature.df.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.col("data").rolling_map(lambda s: resi(s), window).over("vt_symbol")
+        pl.col("data").rolling_map(lambda s: resi(s), window, min_samples=window).over("vt_symbol")
     )
     return DataProxy(df)
 
@@ -163,7 +163,7 @@ def ts_corr(feature1: DataProxy, feature2: DataProxy, window: int) -> DataProxy:
     df: pl.DataFrame = df_merged.select(
         pl.col("datetime"),
         pl.col("vt_symbol"),
-        pl.rolling_corr("data", "data_right", window_size=window, min_samples=1).over("vt_symbol").alias("data")
+        pl.rolling_corr("data", "data_right", window_size=window, min_samples=window).over("vt_symbol").alias("data")
     )
 
     df = df.with_columns(
