@@ -26,4 +26,3 @@ def cs_std(feature: DataProxy) -> DataProxy:
     df: pd.DataFrame = feature.df[["datetime", "vt_symbol"]].copy()
     df["data"] = feature.df.groupby("datetime")["data"].transform("std")
     return DataProxy(df)
-
