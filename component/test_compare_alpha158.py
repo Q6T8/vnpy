@@ -5,11 +5,10 @@
 import pandas as pd
 import polars as pl
 import numpy as np
-from datetime import datetime
 
 # Component 版本（Pandas）
-from component.alpha_158 import Alpha158 as ComponentAlpha158
-from component.utility import calculate_by_expression as component_calculate
+from component.factors import Alpha158 as ComponentAlpha158
+from component.factors import calculate as component_calculate
 
 # Vnpy 版本（Polars）
 from vnpy.alpha.dataset.datasets.alpha_158 import Alpha158 as VnpyAlpha158
@@ -57,11 +56,11 @@ def create_test_data(
 
 
 def compare_feature(
-    feature_name: str, expression: str, df_pd: pd.DataFrame, df_pl: pl.DataFrame
+    factor_name: str, expression: str, df_pd: pd.DataFrame, df_pl: pl.DataFrame
 ) -> dict:
     """比较单个因子的计算结果"""
     result = {
-        "feature": feature_name,
+        "feature": factor_name,
         "expression": expression,
         "status": "unknown",
         "error": None,
@@ -197,24 +196,24 @@ def test_all_features():
         test_period=("2024-01-01", "2024-12-31"),
     )
 
-    print(f"✓ Component 版本: {len(component_alpha.feature_expressions)} 个因子")
+    print(f"✓ Component 版本: {len(component_alpha.factor_expressions)} 个因子")
     print(f"✓ Vnpy 版本: {len(vnpy_alpha.feature_expressions)} 个因子")
 
     # 确保因子列表一致
-    component_features = set(component_alpha.feature_expressions.keys())
-    vnpy_features = set(vnpy_alpha.feature_expressions.keys())
+    component_factors = set(component_alpha.factor_expressions.keys())
+    vnpy_factors = set(vnpy_alpha.feature_expressions.keys())
 
-    if component_features != vnpy_features:
+    if component_factors != vnpy_factors:
         print(f"\n⚠️  因子列表不一致:")
-        only_component = component_features - vnpy_features
-        only_vnpy = vnpy_features - component_features
+        only_component = component_factors - vnpy_factors
+        only_vnpy = vnpy_factors - component_factors
         if only_component:
             print(f"  仅在 Component: {only_component}")
         if only_vnpy:
             print(f"  仅在 Vnpy: {only_vnpy}")
 
     # 测试所有因子
-    print(f"\n开始比较 {len(component_alpha.feature_expressions)} 个因子...")
+    print(f"\n开始比较 {len(component_alpha.factor_expressions)} 个因子...")
     print("-" * 80)
 
     results = []
@@ -225,10 +224,10 @@ def test_all_features():
     all_nan_count = 0
 
     # 按字母顺序排序，便于查看
-    sorted_features = sorted(component_alpha.feature_expressions.items())
+    sorted_factors = sorted(component_alpha.factor_expressions.items())
 
-    for i, (feature_name, expression) in enumerate(sorted_features, 1):
-        result = compare_feature(feature_name, expression, df_pd, df_pl)
+    for i, (factor_name, expression) in enumerate(sorted_factors, 1):
+        result = compare_feature(factor_name, expression, df_pd, df_pl)
         results.append(result)
 
         status_icon = {
@@ -261,7 +260,7 @@ def test_all_features():
         # 显示进度和结果
         if result["status"] != "match" or i % 10 == 0:
             print(
-                f"{status_icon} [{i:3d}/{len(sorted_features)}] {feature_name:20s} - {status_text}",
+                f"{status_icon} [{i:3d}/{len(sorted_factors)}] {factor_name:20s} - {status_text}",
                 end="",
             )
             if result["max_diff"] is not None:
@@ -306,8 +305,9 @@ def test_all_features():
                     print(
                         f"  有效值数量: {result['match_count']}/{result['total_count']}"
                     )
-                    print(f"  最大差异: {result['max_diff']:.6e}")
-                    print(f"  平均差异: {result['mean_diff']:.6e}")
+                    if result.get("max_diff") is not None:
+                        print(f"  最大差异: {result['max_diff']:.6e}")
+                        print(f"  平均差异: {result['mean_diff']:.6e}")
                     print(f"  NaN 位置匹配: {result['nan_match']}")
 
     # 显示接近匹配的因子（可能需要进一步检查）
@@ -347,17 +347,17 @@ def test_sample_features():
     ]
 
     component_alpha = ComponentAlpha158(df_pd)
-
+    
     print(f"\n测试 {len(sample_features)} 个代表性因子...")
     print("-" * 80)
-
-    for feature_name in sample_features:
-        if feature_name not in component_alpha.feature_expressions:
-            print(f"✗ {feature_name} - 因子不存在")
+    
+    for factor_name in sample_features:
+        if factor_name not in component_alpha.factor_expressions:
+            print(f"✗ {factor_name} - 因子不存在")
             continue
-
-        expression = component_alpha.feature_expressions[feature_name]
-        result = compare_feature(feature_name, expression, df_pd, df_pl)
+        
+        expression = component_alpha.factor_expressions[factor_name]
+        result = compare_feature(factor_name, expression, df_pd, df_pl)
 
         status_icon = {
             "match": "✓",
@@ -367,7 +367,7 @@ def test_sample_features():
             "all_nan": "N",
         }.get(result["status"], "?")
 
-        print(f"{status_icon} {feature_name:20s}", end="")
+        print(f"{status_icon} {factor_name:20s}", end="")
         if result["max_diff"] is not None:
             print(
                 f" - 最大差异: {result['max_diff']:.6e}, 平均差异: {result['mean_diff']:.6e}"

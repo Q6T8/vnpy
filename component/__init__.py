@@ -2,8 +2,9 @@
 Component module with Pandas-based implementations
 """
 
-from .utility import DataProxy
-from .ts_function import (
+from .factors import (
+    DataProxy,
+    Alpha158,
     ts_delay,
     ts_min,
     ts_max,
@@ -21,18 +22,13 @@ from .ts_function import (
     ts_less,
     ts_greater,
     ts_log,
-    ts_abs
-)
-from .cs_function import (
+    ts_abs,
     cs_rank,
     cs_mean,
-    cs_std
-)
-from .ta_function import (
+    cs_std,
     ta_rsi,
-    ta_atr
+    ta_atr,
 )
-from .alpha_158 import Alpha158
 
 __all__ = [
     "DataProxy",
